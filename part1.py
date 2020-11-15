@@ -1,7 +1,18 @@
 import pandas as pd
 import random
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--input',help='enter the input')
+parser.add_argument('--output',help="enter the output location")
+args=parser.parse_args()
+#print(args)	
+if args.input==None or args.output==None:
+	print("wrongs args")
+	exit()
+
 #movies = pd.read_csv("movies.csv",encoding="Latin1")
-Ratings = pd.read_csv("ratings.csv")
+Ratings = pd.read_csv(args.input)
 
 def getmatrix(Ratings):
 
@@ -116,9 +127,9 @@ def MAE():
 		
 		for val in list(test.index.values):
 			if test.loc[val,'userId'] in corr.index and test.loc[val,'movieId'] in train_fr.columns:
-#					print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
+					print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
 					re=evaluate(train_fr,corr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
-#					print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
+					print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
 					mae_sum+=abs(test.loc[val,'rating'] - re)
 					count+=1
 		print("After one iteration without changing Top_N Mean absolute Error :"+str(mae_sum/count))
@@ -129,6 +140,7 @@ def MAE():
 #userid_dict,userTop_n=Top_N(52,64620,corr_final)
 #print(calculate_rating(final,userid_dict,userTop_n,52,64620))
 #print(evaluate(final,corr_final,1,1208))
+print("working",end=" ",flush=True)
 MAE()
 
 	
