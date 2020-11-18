@@ -103,15 +103,16 @@ def calculate_rating(final,res,user,movie):
 	a=True
 	x=0
 	y=0
-	print(res)
+#	print(res)
 	while y<15 and x<len(res):
-		if not np.isnan(final.loc[res[x][0],movie]):
-			corr_sum+=res[x][1]
-			#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
-			t = final.loc[res[x][0],movie]*res[x][1]
-			pi_pm+=t
-			t=0
-			y=y+1
+		if res[x][0] in final.index:
+			if not np.isnan(final.loc[res[x][0],movie]):
+				corr_sum+=res[x][1]
+				#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
+				t = final.loc[res[x][0],movie]*res[x][1]
+				pi_pm+=t
+				t=0
+				y=y+1
 		x=x+1
 	
 	return pi_pm,corr_sum
@@ -124,15 +125,16 @@ def evaluate(tr,userID,movieID):
 	ta=0
 	tb=0
 	for gen in genres:
-		for i in g:
-			if i[0]==gen and g[i][1][0]==userID:
-	#			print("exists "+str(userID))
-				set=True
-				usertop_n=i[1][1]
-				break
-		if set==False:
-			usertop_n=top(userID,tr[gen][1])
-			g.append((gen,(userID,usertop_n)))
+		if u in tr[gen][1].index and m in tr[gen][0].columns:
+			for i in g:
+				if i[0]==gen and i[1][0]==userID:
+		#			print("exists "+str(userID))
+					set=True
+					usertop_n=i[1][1]
+					break
+			if set==False:
+				usertop_n=top(userID,tr[gen][1])
+				g.append((gen,(userID,usertop_n)))
 		a,b=calculate_rating(tr[gen][0],usertop_n,userID,movieID)
 		ta+=a
 		tb+=b
@@ -178,17 +180,17 @@ def MAE():
 		count=0
 		
 		for val in list(test.index.values):
-			if test.loc[val,'userId'] in corr.index and test.loc[val,'movieId'] in train_fr.columns:
-					#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
-					re=evaluate(tr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
-					#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
-					mae_sum+=abs(test.loc[val,'rating'] - re)
-					count+=1
+			#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
+			re=evaluate(tr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
+			#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
+			mae_sum+=abs(test.loc[val,'rating'] - re)
+			count+=1
 		print("After one iteration without changing Top_N Mean absolute Error :"+str(mae_sum/count))
 		overall+=mae_sum
 		ocount+=count
 	print("Overall without changing Top_N Mean absolute Error :"+str(overall/ocount))
-tr=getmatrix(Ratings)
-print(tr)
-x=evaluate(tr,1,1)
-print(x)
+#tr=getmatrix(Ratings)
+#print(tr)
+#x=evaluate(tr,1,1)
+#print(x)
+MAE()
