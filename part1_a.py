@@ -1,6 +1,7 @@
 import pandas as pd
 import random
 import argparse
+import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',help='enter the input')
@@ -24,50 +25,48 @@ def getmatrix(Ratings):
 	corr=final.transpose()
 	corr_final=corr.corr(method='pearson')
 	return final,corr_final
-
-def Top_N(userID,corr_matrix):
-    user = userID
-    corr_final = corr_matrix
-    res = corr_final.iloc[user-1]
-    final_res=dict()
-    for x in range(len(res)):
-        final_res[res.iloc[x]]=x+1
-    res = sorted(list(res))
-    res_=[]
-    for x in range(1,30):
-        res_.append(res[len(res)-(x+1)])
-    return final_res,res_
-        #print(res[len(res)-(x+1)])
-
-def calculate_rating(final,final_res,res_,user,movie):
-    corr_sum=0
-    pi_pm=0
-    movie=movie
-    user=user
-    for x in range(15):
-        temp=final.loc[final_res[res_[x]]]
-        #print(temp.mean(axis=0))
-        #print(final.loc[final_res[res_[x]],movie])
-        corr_sum+=res_[x]
-        #t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
-        t = final.loc[final_res[res_[x]],movie]*res_[x]
-        pi_pm+=t
-        t=0
-
-    mu_rating = final.loc[user]
-    mu_rating = mu_rating.mean(axis=0)
-
-    grand_rating =  (pi_pm/corr_sum)
-    return grand_rating
-
-class x:
 	
-	userid_dict=dict
-	userTop_n=[]
-	def __init__(self,u,u1,u2):
-		self.userid=u
-		self.userid_dict=u1
-		self.userTop_n=u2
+def top(user,corr):
+	res=corr.iloc[user-1]
+#	print(res)
+	final_res=dict()
+	for x in range(len(res)):
+		final_res[res.iloc[x]]=x+1
+	res=sorted(list(res),reverse=True)
+	re=[]
+	for x in range(len(res)):
+		if(final_res[res[x]]!=user):
+			re.append((final_res[res[x]],res[x]))
+	return re
+	
+	
+
+
+def calculate_rating(final,res,user,movie):
+	corr_sum=0
+	pi_pm=0
+	movie=movie
+	user=user
+	a=True
+	x=0
+	while a==True:
+		if x<15:		
+			if final.loc[res[x][0],movie]==np.nan:
+				x=x+1
+			else:
+				corr_sum+=res[x][1]
+				#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
+				t = final.loc[res[x][0],movie]*res[x][1]
+				pi_pm+=t
+				t=0
+		else:
+			a=False
+
+	mu_rating = final.loc[user]
+	mu_rating = mu_rating.mean(axis=0)
+
+	grand_rating =  (pi_pm/corr_sum)
+	return grand_rating
 
 g=[]
 def evaluate(final_matrix,corr_matrix,userID,movieID):
@@ -75,15 +74,14 @@ def evaluate(final_matrix,corr_matrix,userID,movieID):
 	userid_dict=None
 	userTop_n=None
 	for i in g:
-		if i.userid==userID:
+		if i[0]==userID:
 #			print("exists "+str(userID))
 			set=True
-			userid_dict=i.userid_dict
-			userTop_n=i.userTop_n
+			userTop_n=i[1]
 	if set==False:
-		userid_dict,userTop_n=Top_N(userID,corr_matrix)
-		g.append(x(userID,userid_dict,userTop_n))
-	res_final=calculate_rating(final_matrix,userid_dict,userTop_n,userID,movieID)
+		usertop_n=Top_N(userID,corr_matrix)
+		g.append((userID,usertop_n))
+	res_final=calculate_rating(final_matrix,userTop_n,userID,movieID)
 	return res_final
     
 def genfolds(Ratings):
@@ -140,7 +138,13 @@ def MAE():
 #userid_dict,userTop_n=Top_N(52,64620,corr_final)
 #print(calculate_rating(final,userid_dict,userTop_n,52,64620))
 #print(evaluate(final,corr_final,1,1208))
-print("working",end=" ",flush=True)
-MAE()
+#print("working",end=" ",flush=True)
+#MAE()
+f,corr=getmatrix(Ratings)
+#print(Ratings)
+#print(Ratings.iloc[0])
+x=top(1,corr)
+print(x)
+print(calculate_rating(f,x,1,1))
 
 	
