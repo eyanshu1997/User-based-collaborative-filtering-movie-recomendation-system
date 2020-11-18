@@ -49,8 +49,9 @@ def calculate_rating(final,res,user,movie):
 	user=user
 	a=True
 	x=0
+	y=0
 	while a==True:
-		if x<15:		
+		if y<15 and x<len(res):		
 			if final.loc[res[x][0],movie]==np.nan:
 				x=x+1
 			else:
@@ -59,6 +60,8 @@ def calculate_rating(final,res,user,movie):
 				t = final.loc[res[x][0],movie]*res[x][1]
 				pi_pm+=t
 				t=0
+				y=y+1
+				x=x+1
 		else:
 			a=False
 
@@ -71,17 +74,17 @@ def calculate_rating(final,res,user,movie):
 g=[]
 def evaluate(final_matrix,corr_matrix,userID,movieID):
 	set=False
-	userid_dict=None
-	userTop_n=None
+	usertop_n=None
 	for i in g:
 		if i[0]==userID:
 #			print("exists "+str(userID))
 			set=True
-			userTop_n=i[1]
+			usertop_n=i[1]
+			break
 	if set==False:
-		usertop_n=Top_N(userID,corr_matrix)
+		usertop_n=top(userID,corr_matrix)
 		g.append((userID,usertop_n))
-	res_final=calculate_rating(final_matrix,userTop_n,userID,movieID)
+	res_final=calculate_rating(final_matrix,usertop_n,userID,movieID)
 	return res_final
     
 def genfolds(Ratings):
@@ -125,9 +128,9 @@ def MAE():
 		
 		for val in list(test.index.values):
 			if test.loc[val,'userId'] in corr.index and test.loc[val,'movieId'] in train_fr.columns:
-					print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
+					#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
 					re=evaluate(train_fr,corr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
-					print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
+					#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
 					mae_sum+=abs(test.loc[val,'rating'] - re)
 					count+=1
 		print("After one iteration without changing Top_N Mean absolute Error :"+str(mae_sum/count))
@@ -139,12 +142,12 @@ def MAE():
 #print(calculate_rating(final,userid_dict,userTop_n,52,64620))
 #print(evaluate(final,corr_final,1,1208))
 #print("working",end=" ",flush=True)
-#MAE()
-f,corr=getmatrix(Ratings)
+MAE()
+#f,corr=getmatrix(Ratings)
 #print(Ratings)
 #print(Ratings.iloc[0])
-x=top(1,corr)
-print(x)
-print(calculate_rating(f,x,1,1))
+#x=top(1,corr)
+#print(x)
+#print(calculate_rating(f,x,1,1))
 
 	
