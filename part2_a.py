@@ -125,7 +125,7 @@ def evaluate(tr,userID,movieID):
 	ta=0
 	tb=0
 	for gen in genres:
-		if u in tr[gen][1].index and m in tr[gen][0].columns:
+		if userID in tr[gen][1].index and movieID in tr[gen][0].columns:
 			for i in g:
 				if i[0]==gen and i[1][0]==userID:
 		#			print("exists "+str(userID))
