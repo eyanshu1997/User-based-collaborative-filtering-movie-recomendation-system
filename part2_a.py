@@ -84,7 +84,7 @@ def getmatrix(ratings):
 	return fi
   
 def top(user,corr):
-	res=corr.iloc[user-1]
+	res=corr.loc[user]
 #	print(res)
 	final_res=dict()
 	for x in range(len(res)):
@@ -135,9 +135,11 @@ def evaluate(tr,userID,movieID):
 			if set==False:
 				usertop_n=top(userID,tr[gen][1])
 				g.append((gen,(userID,usertop_n)))
-		a,b=calculate_rating(tr[gen][0],usertop_n,userID,movieID)
-		ta+=a
-		tb+=b
+			a,b=calculate_rating(tr[gen][0],usertop_n,userID,movieID)
+			ta+=a
+			tb+=b
+	if tb==0:
+		return -1
 	return ta/tb
     
 def genfolds(Ratings):
@@ -183,8 +185,9 @@ def MAE():
 			#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
 			re=evaluate(tr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
 			#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
-			mae_sum+=abs(test.loc[val,'rating'] - re)
-			count+=1
+			if re!=-1:
+				mae_sum+=abs(test.loc[val,'rating'] - re)
+				count+=1
 		print("After one iteration without changing Top_N Mean absolute Error :"+str(mae_sum/count))
 		overall+=mae_sum
 		ocount+=count
