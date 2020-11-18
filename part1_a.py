@@ -52,7 +52,7 @@ def calculate_rating(final,res,user,movie):
 	y=0
 	while a==True:
 		if y<15 and x<len(res):		
-			if final.loc[res[x][0],movie]==np.nan:
+			if np.isnan(final.loc[res[x][0],movie]):
 				x=x+1
 			else:
 				corr_sum+=res[x][1]

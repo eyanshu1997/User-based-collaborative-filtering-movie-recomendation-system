@@ -52,29 +52,35 @@ def find_genre(id_):
 def genre_corelation(genre,df):
 	genrecorr={}
 #	print(df)
+	df_trans=df.transpose()
+#	print(df_trans.loc[6849])
+#	print(df_trans)
 	for x in genre:
-		df_trans=df.transpose()
-		print(df_trans)
-		print(x)
-		print(genre_mov[x])
-		children=df_trans.loc[genre_mov[x]]
+#		print(x)
+		#print(genre_mov[x])
+		y=[]
+		for a in genre_mov[x]:
+			if a in df_trans.index:
+				y.append(a)
+		children=df_trans.loc[y]
 		final_children=children.dropna(axis=1,how="all")
 		genrecorr[x]=final_children
 	return genrecorr
 	
 def getmatrix(ratings):
 	final=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
+#	print(final.loc[:,1])
 	y=genre_corelation(genre,final)
 	fi={}
 	for x in y:
 		
 
 	#print(final)
-		y=y.fillna(final.mean(axis=0))
+		z=y[x].fillna(y[x].mean(axis=0))
 	#print(final)
-		corr=y.transpose()
+		corr=z.transpose()
 		corr_final=corr.corr(method='pearson')
-		fi[x]=(y,corr_final)
+		fi[x]=[y[x],corr_final]
 	return fi
   
 def top(user,corr):
@@ -97,25 +103,20 @@ def calculate_rating(final,res,user,movie):
 	a=True
 	x=0
 	y=0
-	while a==True:
-		if y<15 and x<len(res):		
-			if final.loc[res[x][0],movie]==np.nan:
-				x=x+1
-			else:
-				corr_sum+=res[x][1]
-				#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
-				t = final.loc[res[x][0],movie]*res[x][1]
-				pi_pm+=t
-				t=0
-				y=y+1
-				x=x+1
-		else:
-			a=False
-			
+	print(res)
+	while y<15 and x<len(res):
+		if not np.isnan(final.loc[res[x][0],movie]):
+			corr_sum+=res[x][1]
+			#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
+			t = final.loc[res[x][0],movie]*res[x][1]
+			pi_pm+=t
+			t=0
+			y=y+1
+		x=x+1
 	
 	return pi_pm,corr_sum
 
-g={}
+g=[]
 def evaluate(tr,userID,movieID):
 	set=False
 	usertop_n=None
@@ -124,14 +125,14 @@ def evaluate(tr,userID,movieID):
 	tb=0
 	for gen in genres:
 		for i in g:
-			if i[0]==gen and i[1][0]==userID:
+			if i[0]==gen and g[i][1][0]==userID:
 	#			print("exists "+str(userID))
 				set=True
 				usertop_n=i[1][1]
 				break
 		if set==False:
 			usertop_n=top(userID,tr[gen][1])
-			g=(gen,(userID,usertop_n))
+			g.append((gen,(userID,usertop_n)))
 		a,b=calculate_rating(tr[gen][0],usertop_n,userID,movieID)
 		ta+=a
 		tb+=b
