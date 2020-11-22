@@ -21,7 +21,7 @@ def getmatrix(Ratings):
 	fin=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 
 	#print(final)
-	final=fin.fillna(final.mean(axis=0))
+	final=fin.fillna(fin.mean(axis=0))
 	#print(final)
 	corr=final.transpose()
 	corr_final=corr.corr(method='pearson')
