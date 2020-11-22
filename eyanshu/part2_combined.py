@@ -3,6 +3,7 @@ import random
 import argparse
 import numpy as np
 
+totalcount=0
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',help='enter the input')
 parser.add_argument('--output',help="enter the output location")
@@ -17,6 +18,11 @@ Ratings = pd.read_csv(args.input)
 read_rating = pd.read_csv('movies.csv')
 
 
+
+
+um_withnan=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
+um_i=((um_withnan*0)+1)
+um_c=um_i.fillna(0)
 
 
 genre=set()
@@ -86,7 +92,12 @@ def getmatrix(ratings):
 		corr_final=corr.corr(method='pearson')
 		fi[x]=[y[x],corr_final]
 	return fi
-  
+
+
+        
+def common(user1,user2):
+    return um_c.loc[user1].dot(um_c.loc[user2])
+
 def top(user,corr):
 	res=corr.loc[user]
 #	print(res)
@@ -99,27 +110,31 @@ def top(user,corr):
 		if(final_res[res[x]]!=user):
 			re.append((final_res[res[x]],res[x]))
 	return re
+
 def calculate_rating(final,res,user,movie):
-	corr_sum=0
-	pi_pm=0
-	movie=movie
-	user=user
-	a=True
-	x=0
-	y=0
-#	print(res)
-	while y<15 and x<len(res):
-		if res[x][0] in final.index:
-			if not np.isnan(final.loc[res[x][0],movie]):
-				corr_sum+=res[x][1]
-				#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
-				t = final.loc[res[x][0],movie]*res[x][1]
-				pi_pm+=t
-				t=0
-				y=y+1
-		x=x+1
-	
-	return pi_pm,corr_sum
+    corr_sum=0
+    pi_pm=0
+    movie=movie
+    user=user
+    wt=0
+    x=0
+    y=0
+    while y<15 and x<len(res):
+        if res[x][0] in final.index and res[x][0] in um_withnan.index:
+            if not (np.isnan(final.loc[res[x][0],movie])):
+                if not (np.isnan(um_withnan.loc[res[x][0],movie])):
+                    wt=common(user,res[x][0])
+                    if wt==0:
+                        wt=1
+                    corr_sum+=(wt*res[x][1])
+                #t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
+                    t = final.loc[res[x][0],movie]*(wt*res[x][1])
+                    wt=0
+        x=x+1
+
+    mu_rating = final.loc[user]
+    mu_rating = mu_rating.mean(axis=0)
+    return pi_pm,corr_sum
 
 g=[]
 def evaluate(tr,userID,movieID):
@@ -206,3 +221,4 @@ def MAE():
 #x=evaluate(tr,1,47)
 #print(x)
 MAE()
+#print(totalcount)
