@@ -47,23 +47,18 @@ def calculate_rating(final,res,user,movie):
 	pi_pm=0
 	movie=movie
 	user=user
-	a=True
 	x=0
 	y=0
-	while a==True:
-		if y<15 and x<len(res):		
-			if np.isnan(final.loc[res[x][0],movie]):
-				x=x+1
-			else:
+	while y<15 and x<len(res):
+		if res[x][0] in final.index:
+			if not np.isnan(final.loc[res[x][0],movie]):
 				corr_sum+=res[x][1]
 				#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
 				t = final.loc[res[x][0],movie]*res[x][1]
 				pi_pm+=t
 				t=0
 				y=y+1
-				x=x+1
-		else:
-			a=False
+		x=x+1
 
 	mu_rating = final.loc[user]
 	mu_rating = mu_rating.mean(axis=0)

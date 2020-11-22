@@ -18,15 +18,15 @@ Ratings = pd.read_csv("ratings.csv")
 
 def getmatrix(Ratings):
 
-	fin=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
+	final=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 
 	#print(final)
-	final=fin.fillna(fin.mean(axis=0))
+	final=final.fillna(final.mean(axis=0))
 	#print(final)
 	corr=final.transpose()
 	corr_final=corr.corr(method='pearson')
-	return fin,final,corr_final
-
+	return final,corr_final
+	
 def top(user,corr):
 	res=corr.iloc[user-1]
 #	print(res)
@@ -48,23 +48,18 @@ def calculate_rating(final,res,user,movie):
 	pi_pm=0
 	movie=movie
 	user=user
-	a=True
 	x=0
 	y=0
-	while a==True:
-		if y<15 and x<len(res):		
-			if final.loc[res[x][0],movie]==np.nan:
-				x=x+1
-			else:
+	while y<15 and x<len(res):
+		if res[x][0] in final.index:
+			if not np.isnan(final.loc[res[x][0],movie]):
 				corr_sum+=res[x][1]
 				#t = final.loc[final_res[res_[x]],movie] - temp.mean(axis=0)
 				t = final.loc[res[x][0],movie]*res[x][1]
 				pi_pm+=t
 				t=0
 				y=y+1
-				x=x+1
-		else:
-			a=False
+		x=x+1
 
 	mu_rating = final.loc[user]
 	mu_rating = mu_rating.mean(axis=0)
@@ -87,7 +82,7 @@ def evaluate(final_matrix,corr_matrix,userID,movieID):
 		g.append((userID,usertop_n))
 	res_final=calculate_rating(final_matrix,usertop_n,userID,movieID)
 	return res_final
-    
+	
 def process(userlist,ratings):
 	fin,final,corr=getmatrix(ratings)
 #	print(fin)

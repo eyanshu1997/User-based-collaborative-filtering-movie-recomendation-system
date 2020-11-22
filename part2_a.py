@@ -16,6 +16,9 @@ if args.input==None or args.output==None:
 Ratings = pd.read_csv(args.input)
 read_rating = pd.read_csv('movies.csv')
 
+Ratings = pd.read_csv('ratings.csv')
+read_rating = pd.read_csv('movies.csv')
+
 
 genre=set()
 for x in range(9742):
@@ -28,6 +31,7 @@ genre_mov=dict()
 id_list=[]
 genre_mov[""]=[]
 
+ratmat=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 for g in genre:
     genre_mov[g]=[]
     
@@ -70,6 +74,7 @@ def genre_corelation(genre,df):
 def getmatrix(ratings):
 	final=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 #	print(final.loc[:,1])
+	Ratmat=final
 	y=genre_corelation(genre,final)
 	fi={}
 	for x in y:
@@ -139,7 +144,12 @@ def evaluate(tr,userID,movieID):
 			ta+=a
 			tb+=b
 	if tb==0:
-		return -1
+		mean=ratmat.mean(axis=1)
+		mmean=ratmat.mean(axis=0)
+		ome=mean.mean()
+		global totalcount
+		totalcount+=1
+		return mmean[movieID]+(mean[userID]-ome)
 	return ta/tb
     
 def genfolds(Ratings):
@@ -182,9 +192,9 @@ def MAE():
 		count=0
 		
 		for val in list(test.index.values):
-			#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
+#			print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
 			re=evaluate(tr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
-			#print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
+#			print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
 			if re!=-1:
 				mae_sum+=abs(test.loc[val,'rating'] - re)
 				count+=1
@@ -194,6 +204,6 @@ def MAE():
 	print("Overall without changing Top_N Mean absolute Error :"+str(overall/ocount))
 #tr=getmatrix(Ratings)
 #print(tr)
-#x=evaluate(tr,1,1)
+#x=evaluate(tr,1,47)
 #print(x)
 MAE()
