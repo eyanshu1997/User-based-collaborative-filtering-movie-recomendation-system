@@ -18,14 +18,14 @@ Ratings = pd.read_csv("ratings.csv")
 
 def getmatrix(Ratings):
 
-	final=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
+	fin=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 
 	#print(final)
-	final=final.fillna(final.mean(axis=0))
+	final=fin.fillna(final.mean(axis=0))
 	#print(final)
 	corr=final.transpose()
 	corr_final=corr.corr(method='pearson')
-	return final,corr_final
+	return fin,final,corr_final
 	
 def top(user,corr):
 	res=corr.iloc[user-1]
