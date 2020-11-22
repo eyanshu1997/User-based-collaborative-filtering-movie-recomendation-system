@@ -146,8 +146,6 @@ def evaluate(tr,userID,movieID):
 		mean=ratmat.mean(axis=1)
 		mmean=ratmat.mean(axis=0)
 		ome=mean.mean()
-		global totalcount
-		totalcount+=1
 		return mmean[movieID]+(mean[userID]-ome)
 	return ta/tb
     
