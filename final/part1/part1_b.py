@@ -3,6 +3,9 @@ import random
 import argparse
 from operator import itemgetter 
 import numpy as np
+import random
+import itertools
+import csv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',help='enter the input')
@@ -14,7 +17,7 @@ if args.input==None or args.output==None:
 	exit()
 
 #movies = pd.read_csv("movies.csv",encoding="Latin1")
-Ratings = pd.read_csv("ratings.csv",nrows=30000)
+Ratings = pd.read_csv("ratings.csv")
 
 def getmatrix(Ratings):
 
@@ -84,36 +87,73 @@ def evaluate(fin,final_matrix,corr_matrix,userID,movieID):
 	return res_final
 	
 def process(userlist,ratings):
-	fin,final,corr=getmatrix(ratings)
+    fin,final,corr=getmatrix(ratings)
+    pr={}
+    ac={}
 #	print(fin)
 #	fin.to_csv("a.csv")
-	for i in userlist:
-		print(i)	
-		mov={}
-		seen=set()
+    for i in userlist:	
+        mov={}
+        seen=set()
 #		print(fin)
 #		print(fin.loc[int(i),:])
-		us=fin.loc[int(i),:].notna()
+        us=fin.loc[int(i),:].notna()
 #		print(us)
-		for x in fin.columns:
-			if us[x]==True:
-				seen.add(x)
+        for x in fin.columns:
+            if us[x]==True:
+                seen.add(x)
 #		print(us.index)
 #		print(len(seen))
-#		print(seen)
-		for j in final.columns:
-			if j not in seen:
-		  		re=evaluate(fin,final,corr,int(i),j)
-		  		mov[j]=re
-		rem=sorted(mov.items(), key = itemgetter(1), reverse = True)[:40]
-		print(rem)
-		res = dict(rem[:5])
-		print(res)
-		use=fin.loc[int(i),:]
-		print(use.nlargest())
+		#print(seen)
+        for j in final.columns:
+            if j not in seen:
+                re=evaluate(fin,final,corr,int(i),j)
+                if re>5:
+                    re=5
+                mov[j]=re
+        res = dict(sorted(mov.items(), key = itemgetter(1), reverse = True)[:5])
+        print(res)
+        pr.update(res)
+        use=fin.loc[int(i),:]
+        print(use.nlargest())
+        ac.update(use.nlargest().to_dict())
+    return pr,ac
 	  	
 	   	
 	  
-file1 = open(args.input, 'r') 
-Lines = file1.readlines()
-process(Lines,Ratings)
+
+file1=open(args.input,'r')
+#process(Lines,Ratings)
+userlist=[]
+fields = ['Test_user', 'P_Movies','P_Ratings','Past_Movies','Past_Ratings']
+#userlist=file1['userId'].unique()
+u_list=file1.readlines()
+print(u_list)
+pr,ac=process(u_list,Ratings)
+print("pr : \n",pr)
+print("ac : \n",ac)
+mydict =[]
+app={'Test_user':0,'P_Movies':0,'P_Ratings':0,'Past_Movies':0,'Past_Ratings':0}
+i=0
+z=1
+for j,k in zip(pr,ac):
+    app={'Test_user':u_list[i],'P_Movies':j,'P_Ratings':pr[j],'Past_Movies':k,'Past_Ratings':ac[k]}
+    mydict.append(app)
+    if z%5==0:
+        i=i+1
+    z=z+1
+#print(mydict)
+filename = "output.csv"
+  
+# writing to csv file 
+with open(filename, 'w') as csvfile: 
+    # creating a csv dict writer object 
+    writer = csv.DictWriter(csvfile, fieldnames = fields) 
+      
+    # writing headers (field names) 
+    writer.writeheader() 
+      
+    # writing data rows 
+    writer.writerows(mydict) 
+# process(Lines,Ratings)
+
