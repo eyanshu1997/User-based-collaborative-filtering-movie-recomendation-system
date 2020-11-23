@@ -7,6 +7,8 @@ import random
 import itertools
 import csv
 
+
+#Argument handling
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',help='enter the input')
 parser.add_argument('--output',help="enter the output location")
@@ -16,23 +18,21 @@ if args.input==None or args.output==None:
 	print("wrongs args")
 	exit()
 
-#movies = pd.read_csv("movies.csv",encoding="Latin1")
+
 Ratings = pd.read_csv("ratings.csv",nrows=40000)
 
+#generates user to movie matrix from the ratings matrix
 def getmatrix(Ratings):
 
 	fin=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
-
-	#print(final)
 	final=fin.fillna(fin.mean(axis=0))
-	#print(final)
 	corr=final.transpose()
 	corr_final=corr.corr(method='pearson')
 	return fin,final,corr_final
-	
+
+#calculates the sorted list of corlated users
 def top(user,corr):
 	res=corr.iloc[user-1]
-#	print(res)
 	final_res=dict()
 	for x in range(len(res)):
 		final_res[res.iloc[x]]=x+1
@@ -42,10 +42,8 @@ def top(user,corr):
 		if(final_res[res[x]]!=user):
 			re.append((final_res[res[x]],res[x]))
 	return re
-	
-	
 
-
+#calculates the rating of a user for a movie based on the corelated user found by the above function
 def calculate_rating(fin,final,res,user,movie):
 	corr_sum=0
 	pi_pm=0
@@ -70,6 +68,7 @@ def calculate_rating(fin,final,res,user,movie):
 	grand_rating =  (pi_pm/corr_sum)
 	return grand_rating
 
+#it calculates the rating of a user for a movie based on the corelated user found by the above function and preforms some memoiztation or faster calculation by storing the top user list alredy calculated and using them again
 g=[]
 def evaluate(fin,final_matrix,corr_matrix,userID,movieID):
 	set=False
@@ -85,26 +84,20 @@ def evaluate(fin,final_matrix,corr_matrix,userID,movieID):
 		g.append((userID,usertop_n))
 	res_final=calculate_rating(fin,final_matrix,usertop_n,userID,movieID)
 	return res_final
-	
+
+
+#it is used to calculate ratings for each movie for a user and then find the top predictions.	
 def process(userlist,ratings):
     fin,final,corr=getmatrix(ratings)
     pr=[]
     ac=[]
-#	print(fin)
-#	fin.to_csv("a.csv")
     for i in userlist:	
         mov={}
         seen=set()
-#		print(fin)
-#		print(fin.loc[int(i),:])
         us=fin.loc[int(i),:].notna()
-#		print(us)
         for x in fin.columns:
             if us[x]==True:
                 seen.add(x)
-#		print(us.index)
-#		print(len(seen))
-		#print(seen)
         for j in final.columns:
             if j not in seen:
                 re=evaluate(fin,final,corr,int(i),j)
@@ -121,12 +114,10 @@ def process(userlist,ratings):
 	  	
 	   	
 	  
-
+#OUPUT WORKINGS
 file1=open(args.input,'r')
-#process(Lines,Ratings)
 userlist=[]
 fields = ['Test_user', 'P_Movies','P_Ratings','Past_Movies','Past_Ratings']
-#userlist=file1['userId'].unique()
 u_list=file1.readlines()
 print(u_list)
 pr,ac=process(u_list,Ratings)
@@ -139,7 +130,7 @@ for i in range(len(u_list)):
 	for j,k in zip(pr[i],ac[i]):
 		app={'Test_user':u_list[i],'P_Movies':j,'P_Ratings':pr[i][j],'Past_Movies':k,'Past_Ratings':ac[i][k]}
 		mydict.append(app)
-#print(mydict)
+
 filename = "output.csv"
   
 # writing to csv file 
@@ -152,5 +143,4 @@ with open(filename, 'w') as csvfile:
       
     # writing data rows 
     writer.writerows(mydict) 
-# process(Lines,Ratings)
 

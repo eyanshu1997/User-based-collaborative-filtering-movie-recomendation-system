@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import itertools
 import csv
+#Argument handling
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',help='enter the input')
@@ -13,21 +14,21 @@ args=parser.parse_args()
 if args.input==None or args.output==None:
 	print("wrongs args")
 	exit()
-
+	
+	
 #movies = pd.read_csv("movies.csv",encoding="Latin1")
 Ratings = pd.read_csv(args.input)
 
+#generates user to movie matrix from the ratings matrix
 def getmatrix(Ratings):
 
 	fin=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
-
-	#print(final)
 	final=fin.fillna(fin.mean(axis=0))
-	#print(final)
 	corr=final.transpose()
 	corr_final=corr.corr(method='pearson')
 	return fin,final,corr_final
-	
+
+#calculates the sorted list of corlated users
 def top(user,corr):
 	res=corr.iloc[user-1]
 #	print(res)
@@ -43,7 +44,7 @@ def top(user,corr):
 	
 	
 
-
+#calculates the rating of a user for a movie based on the corelated user found by the above function
 def calculate_rating(fin,final,res,user,movie):
 	corr_sum=0
 	pi_pm=0
@@ -68,6 +69,7 @@ def calculate_rating(fin,final,res,user,movie):
 	grand_rating =  (pi_pm/corr_sum)
 	return grand_rating
 
+#it calculates the rating of a user for a movie based on the corelated user found by the above function and preforms some memoiztation or faster calculation by storing the top user list alredy calculated and using them again
 g=[]
 def evaluate(fin,final_matrix,corr_matrix,userID,movieID):
 	set=False
@@ -83,7 +85,10 @@ def evaluate(fin,final_matrix,corr_matrix,userID,movieID):
 		g.append((userID,usertop_n))
 	res_final=calculate_rating(fin,final_matrix,usertop_n,userID,movieID)
 	return res_final
-    
+
+
+
+#it generates fold of the dataset. it divied the data into  five chunks randomly.
 def genfolds(Ratings):
 #	print(len(Ratings))
 	chunk=len(Ratings)//5
@@ -102,12 +107,9 @@ def genfolds(Ratings):
 		folds.append(testratings)
 	trainratings=Ratings.drop(overall,axis=0)
 	folds.append(trainratings)
-#	print(testratings)
-#	print(trainratings)
-	#print(testchunk)
-#	print(folds)
 	return folds
 
+#calculates the mean error by running the folds and calulating the error and finding the mean eroor of the folds.
 def MAE():
     d_er={}
     d_oer={}
@@ -127,11 +129,9 @@ def MAE():
 		
         for val in list(test.index.values):
             if test.loc[val,'userId'] in corr.index and test.loc[val,'movieId'] in train_fr.columns:
-                    #print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Actual Rating: "+str(test.loc[val,'rating']))
                     re=evaluate(fin,train_fr,corr,int(test.loc[val,'userId']),int(test.loc[val,'movieId']))
                     if re>5:
                             re=5
-                    #print("For user ID: "+str(test.loc[val,'userId'])+" Movie ID: "+str(test.loc[val,'movieId'])+" Predicted Rating: "+str(re))
                     mae_sum+=abs(test.loc[val,'rating'] - re)
                     count+=1
         print("After one iteration without changing Top_N Mean absolute Error :"+str(mae_sum/count))
@@ -142,17 +142,9 @@ def MAE():
     d_oer.update({"average": overall/ocount})
     return d_er,d_oer
 	
-#userid_dict,userTop_n=Top_N(52,64620,corr_final)
-#print(calculate_rating(final,userid_dict,userTop_n,52,64620))
-#print(evaluate(final,corr_final,1,1208))
-#print("working",end=" ",flush=True)
+
+#OUPUT WORKINGS
 er,oer=MAE()
-#f,corr=getmatrix(Ratings)
-#print(Ratings)
-#print(Ratings.iloc[0])
-#x=top(1,corr)
-#print(x)
-#print(calculate_rating(f,x,1,1))
 fields = ['No. of Fold', 'MAE'] 
 mydict =[]
 app={'No. of Fold':0,'MAE':0}
@@ -160,7 +152,6 @@ app2={'No. of Fold':'x','MAE':0}
 for j in er:
     app={'No. of Fold': j,'MAE':er[j]}
     mydict.append(app)
-#print(mydict)
 for j in oer:
     app2={'No. of Fold': j,'MAE':oer[j]}
     mydict.append(app2)
@@ -176,5 +167,5 @@ with open(filename, 'w') as csvfile:
       
     # writing data rows 
     writer.writerows(mydict) 
-# process(Lines,Ratings)
+
 	
