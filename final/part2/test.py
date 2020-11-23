@@ -7,6 +7,7 @@ import random
 import itertools
 import csv
 
+#Argument handling
 parser = argparse.ArgumentParser()
 parser.add_argument('--input',help='enter the input')
 parser.add_argument('--output',help="enter the output location")
@@ -22,11 +23,13 @@ read_rating = pd.read_csv('movies.csv')
 
 
 
-
+#this matrix is required to handle case aplification parameters
 um_withnan=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 um_i=((um_withnan*0)+1)
 um_c=um_i.fillna(0)
 enre=set()
+
+#find all genres
 genre=set()
 for x in range(9742):
     val=read_rating.iloc[x,2]
@@ -38,10 +41,11 @@ genre_mov=dict()
 id_list=[]
 genre_mov[""]=[]
 
-ratmat=pd.pivot_table(pd.read_csv("ratings.csv",nrows=40000),values='rating',index='userId',columns='movieId')
+ratmat=pd.pivot_table(pd.read_csv("ratings.csv"),values='rating',index='userId',columns='movieId')
 for g in genre:
     genre_mov[g]=[]
-    
+
+#genreate utilty matrix according tot the genres    
 for x in range(9742):
     id_ = read_rating.iloc[x,0]
     val=read_rating.iloc[x,2]
@@ -52,14 +56,15 @@ for x in range(9742):
         l_val.append(id_)
         genre_mov[v]=l_val
        
-       
+#find all the gernre of the movie       
 def find_genre(id_):
 	all_genre=[]
 	for x in genre:
 		if id_ in genre_mov[x]:
 			all_genre.append(x)
 	return all_genre   
-	 
+
+#find correlation matrix genrewise	 	 
 def genre_corelation(genre,df):
 	genrecorr={}
 #	print(df)
@@ -79,7 +84,7 @@ def genre_corelation(genre,df):
 	return genrecorr
 	
 	
-	
+#generates user to movie matrix from the ratings matrix		
 def getmatrix(ratings):
 	final=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 #	print(final.loc[:,1])
@@ -98,10 +103,11 @@ def getmatrix(ratings):
 	return final,fi
 
 
-        
+#calculates the count of common ovies of the users              
 def common(user1,user2):
     return um_c.loc[user1].dot(um_c.loc[user2])
 
+#calculates the sorted list of corlated users
 def top(user,corr):
 	res=corr.loc[user]
 #	print(res)
@@ -115,6 +121,7 @@ def top(user,corr):
 			re.append((final_res[res[x]],res[x]))
 	return re
 
+#calculates the rating of a user for a movie based on the corelated user found by the above function
 def calculate_rating(fin,final,res,user,movie):
     corr_sum=0
     pi_pm=0
@@ -140,6 +147,7 @@ def calculate_rating(fin,final,res,user,movie):
     mu_rating = mu_rating.mean(axis=0)
     return pi_pm,corr_sum
 
+#it calculates the rating of a user for a movie based on the corelated user found by the above function and preforms some memoiztation or faster calculation by storing the top user list alredy calculated and using them again
 g=[]
 def evaluate(fin,tr,userID,movieID):
 	set=False
@@ -167,7 +175,8 @@ def evaluate(fin,tr,userID,movieID):
 		ome=mean.mean()
 		return mmean[movieID]+(mean[userID]-ome)
 	return ta/tb
-	
+
+#it is used to calculate ratings for each movie for a user and then find the top predictions.		
 def process(userlist,ratings):
     fin,tr=getmatrix(ratings)
     pr=[]
@@ -202,7 +211,7 @@ def process(userlist,ratings):
     return pr,ac
 	  	
 	   	
-	  
+#OUPUT WORKINGS	  
 file1 = open(args.input, 'r') 
 #Lines = file1.readlines()
 #process(Lines,Ratings)
@@ -222,7 +231,7 @@ for i in range(len(u_list)):
 		app={'Test_user':u_list[i],'P_Movies':j,'P_Ratings':pr[i][j],'Past_Movies':k,'Past_Ratings':ac[i][k]}
 		mydict.append(app)
 	    
-#print(mydict)
+
 filename = "output2.csv"
   
 # writing to csv file 

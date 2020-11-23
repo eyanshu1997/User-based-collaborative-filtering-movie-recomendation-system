@@ -15,17 +15,18 @@ if args.input==None or args.output==None:
 	print("wrongs args")
 	exit()
 
-Ratings = pd.read_csv(args.input,nrows=50000)
+Ratings = pd.read_csv(args.input,nrows=40000)
 read_rating = pd.read_csv('movies.csv')
 
 
 
-
+#this matrix is required to handle case aplification parameters
 um_withnan=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 um_i=((um_withnan*0)+1)
 um_c=um_i.fillna(0)
 
 
+#find all genres
 genre=set()
 for x in range(9742):
     val=read_rating.iloc[x,2]
@@ -40,34 +41,30 @@ genre_mov[""]=[]
 ratmat=pd.pivot_table(Ratings,values='rating',index='userId',columns='movieId')
 for g in genre:
     genre_mov[g]=[]
-    
+
+#genreate utilty matrix according tot the genres   
 for x in range(9742):
     id_ = read_rating.iloc[x,0]
     val=read_rating.iloc[x,2]
     val=val.split("|")
-    #print(val)
     for v in val:
         l_val=genre_mov[v]
         l_val.append(id_)
         genre_mov[v]=l_val
        
-       
+#find all the gernre of the movie 
 def find_genre(id_):
 	all_genre=[]
 	for x in genre:
 		if id_ in genre_mov[x]:
 			all_genre.append(x)
 	return all_genre   
-	 
+
+#find correlation matrix genrewise	 
 def genre_corelation(genre,df):
 	genrecorr={}
-#	print(df)
 	df_trans=df.transpose()
-#	print(df_trans.loc[6849])
-#	print(df_trans)
 	for x in genre:
-#		print(x)
-		#print(genre_mov[x])
 		y=[]
 		for a in genre_mov[x]:
 			if a in df_trans.index:
@@ -211,6 +208,7 @@ def MAE():
     return d_er,d_oer
 
 
+#OUPUT WORKINGS
 er,oer=MAE()
 fields = ['No. of Fold', 'MAE'] 
 mydict =[]
