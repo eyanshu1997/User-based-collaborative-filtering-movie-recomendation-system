@@ -1,0 +1,25 @@
+
+PART1 
+as defined in the assignment
+1.RS_main.py
+execution: python RS_main.py − −input rating.csv − −output eval.csv
+
+It calculates the mean average error of the approach by using 5-fold method
+
+2. test.py
+execution: python test.py − −input test user.txt − −output output.csv
+
+It calculates the best recomended 5 movies for a userid mentiones in the user.txt.
+
+
+PART2
+implementing the improvements.
+1.RS_main.py
+execution: python RS_main.py − −input rating.csv − −output eval.csv
+
+It calculates the mean average error of the approach by using 5-fold method
+
+2. test.py
+execution: python test.py − −input test user.txt − −output output.csv
+
+It calculates the best recomended 5 movies for a userid mentiones in the user.txt.

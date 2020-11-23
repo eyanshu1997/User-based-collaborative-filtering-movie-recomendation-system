@@ -120,10 +120,6 @@ def MAE():
         test=folds[i]
         train=Ratings.drop(list(test.index.values),axis=0)
         fin,train_fr,corr=getmatrix(train)
-#		print(train)
-#		print(train_fr)
-#		print(corr)
-		
         mae_sum=0
         count=0
 		
