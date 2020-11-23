@@ -17,7 +17,7 @@ if args.input==None or args.output==None:
 	exit()
 
 #movies = pd.read_csv("movies.csv",encoding="Latin1")
-Ratings = pd.read_csv("ratings.csv")
+Ratings = pd.read_csv("ratings.csv",nrows=40000)
 
 def getmatrix(Ratings):
 
@@ -88,8 +88,8 @@ def evaluate(fin,final_matrix,corr_matrix,userID,movieID):
 	
 def process(userlist,ratings):
     fin,final,corr=getmatrix(ratings)
-    pr={}
-    ac={}
+    pr=[]
+    ac=[]
 #	print(fin)
 #	fin.to_csv("a.csv")
     for i in userlist:	
@@ -113,10 +113,10 @@ def process(userlist,ratings):
                 mov[j]=re
         res = dict(sorted(mov.items(), key = itemgetter(1), reverse = True)[:5])
         print(res)
-        pr.update(res)
+        pr.append(res)
         use=fin.loc[int(i),:]
         print(use.nlargest())
-        ac.update(use.nlargest().to_dict())
+        ac.append(use.nlargest().to_dict())
     return pr,ac
 	  	
 	   	
@@ -135,13 +135,10 @@ print("ac : \n",ac)
 mydict =[]
 app={'Test_user':0,'P_Movies':0,'P_Ratings':0,'Past_Movies':0,'Past_Ratings':0}
 i=0
-z=1
-for j,k in zip(pr,ac):
-    app={'Test_user':u_list[i],'P_Movies':j,'P_Ratings':pr[j],'Past_Movies':k,'Past_Ratings':ac[k]}
-    mydict.append(app)
-    if z%5==0:
-        i=i+1
-    z=z+1
+for i in range(len(u_list)):
+	for j,k in zip(pr[i],ac[i]):
+		app={'Test_user':u_list[i],'P_Movies':j,'P_Ratings':pr[i][j],'Past_Movies':k,'Past_Ratings':ac[i][k]}
+		mydict.append(app)
 #print(mydict)
 filename = "output.csv"
   
